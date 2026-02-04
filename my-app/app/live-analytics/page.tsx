@@ -8,6 +8,7 @@ import {
   SidebarProvider,
 } from "@/components/ui/sidebar"
 import { z } from "zod"
+import { ThemeProvider } from "@/components/theme-provider";
 
 import rawData from "./data.json"
 
@@ -24,7 +25,13 @@ export default function Page() {
           "--header-height": "calc(var(--spacing) * 12)",
         } as React.CSSProperties
       }
-    >
+    > 
+    <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
+        >
       <AppSidebar variant="inset" />
       <SidebarInset>
         <SiteHeader />
@@ -40,6 +47,7 @@ export default function Page() {
           </div>
         </div>
       </SidebarInset>
+      </ThemeProvider>
     </SidebarProvider>
   )
 }

@@ -109,12 +109,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table"
-import {
-  Tabs,
-  TabsContent,
-  TabsList,
-  TabsTrigger,
-} from "@/components/ui/tabs"
+
 
 // Creator Schema
 export const schema = z.object({
@@ -571,35 +566,23 @@ export function DataTable({
   } satisfies ChartConfig
 
   return (
-    <Tabs
-      defaultValue="creators"
-      className="w-full flex-col justify-start gap-6"
-    >
+    <div className="w-full flex flex-col gap-6">
+      {/* Analytics Section - Always visible above creators */}
+      <div className="px-4 lg:px-6">
+        <Analytics
+          data={data}
+          totalYoutubeViews={totalYoutubeViews}
+          totalInstagramViews={totalInstagramViews}
+          chartConfig={chartConfig}
+          tierColors={tierColors}
+          formatNumber={formatNumber}
+        />
+      </div>
+
+      {/* Header and Controls */}
       <div className="flex flex-col gap-4 px-4 lg:px-6">
-        {/* Header with Tabs and Controls */}
         <div className="flex items-center justify-between">
-          <Label htmlFor="view-selector" className="sr-only">
-            View
-          </Label>
-          <Select defaultValue="creators">
-            <SelectTrigger
-              className="flex w-fit @4xl/main:hidden"
-              size="sm"
-              id="view-selector"
-            >
-              <SelectValue placeholder="Select a view" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="creators">Creators</SelectItem>
-              <SelectItem value="analytics">Analytics</SelectItem>
-            </SelectContent>
-          </Select>
-          <TabsList className="**:data-[slot=badge]:bg-muted-foreground/30 hidden **:data-[slot=badge]:size-5 **:data-[slot=badge]:rounded-full **:data-[slot=badge]:px-1 @4xl/main:flex">
-            <TabsTrigger value="creators">Creators</TabsTrigger>
-            <TabsTrigger value="analytics">
-              Analytics <Badge variant="secondary">{data.length}</Badge>
-            </TabsTrigger>
-          </TabsList>
+          <h2 className="text-lg font-semibold">Creators</h2>
           <div className="flex items-center gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -633,10 +616,6 @@ export function DataTable({
                   })}
               </DropdownMenuContent>
             </DropdownMenu>
-            {/* <Button variant="outline" size="sm">
-              <IconPlus />
-              <span className="hidden lg:inline">Add Creator</span>
-            </Button> */}
           </div>
         </div>
 
@@ -709,10 +688,8 @@ export function DataTable({
         </div>
       </div>
 
-      <TabsContent
-        value="creators"
-        className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6"
-      >
+      {/* Creators Table */}
+      <div className="relative flex flex-col gap-4 overflow-auto px-4 lg:px-6">
         <div className="overflow-hidden rounded-lg border">
           <DndContext
             collisionDetection={closestCenter}
@@ -841,22 +818,7 @@ export function DataTable({
             </div>
           </div>
         </div>
-      </TabsContent>
-
-      {/* Analytics Tab */}
-      <TabsContent
-        value="analytics"
-        className="px-4 lg:px-6"
-      >
-        <Analytics
-          data={data}
-          totalYoutubeViews={totalYoutubeViews}
-          totalInstagramViews={totalInstagramViews}
-          chartConfig={chartConfig}
-          tierColors={tierColors}
-          formatNumber={formatNumber}
-        />
-      </TabsContent>
-    </Tabs>
+      </div>
+    </div>
   )
 }
