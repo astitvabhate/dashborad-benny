@@ -57,9 +57,10 @@ import {
   type SortingState,
   type VisibilityState,
 } from "@tanstack/react-table"
-import { Area, AreaChart, Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts"
 import { toast } from "sonner"
 import { z } from "zod"
+
+import { Analytics } from "./analytics"
 
 import { useIsMobile } from "@/hooks/use-mobile"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -146,24 +147,24 @@ type Creator = z.infer<typeof schema>
 
 // Tier badge colors
 const tierColors: Record<string, string> = {
-  Nano: "bg-purple-500/20 text-purple-400 border-purple-500/30",
-  Micro: "bg-blue-500/20 text-blue-400 border-blue-500/30",
-  Macro: "bg-orange-500/20 text-orange-400 border-orange-500/30",
-  Mega: "bg-emerald-500/20 text-emerald-400 border-emerald-500/30",
+  Nano: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Micro: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Macro: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Mega: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
 }
 
 // Verification status colors
 const verificationColors: Record<string, string> = {
-  Verified: "bg-green-500/20 text-green-400 border-green-500/30",
-  Pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  Rejected: "bg-red-500/20 text-red-400 border-red-500/30",
+  Verified: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Pending: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Rejected: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
 }
 
 // Payment status colors
 const paymentColors: Record<string, string> = {
-  Paid: "bg-green-500/20 text-green-400 border-green-500/30",
-  Pending: "bg-yellow-500/20 text-yellow-400 border-yellow-500/30",
-  Unpaid: "bg-red-500/20 text-red-400 border-red-500/30",
+  Paid: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Pending: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
+  Unpaid: "bg-zinc-500/10 text-zinc-400 border-zinc-500/20",
 }
 
 // Create a separate component for the drag handle
@@ -275,7 +276,7 @@ const columns: ColumnDef<Creator>[] = [
         href={row.original.contentLink}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-1.5 text-blue-400 hover:text-blue-300 transition-colors"
+        className="flex items-center gap-1.5 text-zinc-400 hover:text-zinc-300 transition-colors"
       >
         {row.original.platform === "instagram" ? (
           <IconBrandInstagram className="size-4" />
@@ -319,7 +320,7 @@ const columns: ColumnDef<Creator>[] = [
     header: () => <div className="text-right">ER</div>,
     cell: ({ row }) => (
       <div className="text-right">
-        <span className={`font-medium ${row.original.engagementRate > 8 ? 'text-green-400' : row.original.engagementRate > 5 ? 'text-yellow-400' : 'text-muted-foreground'}`}>
+        <span className="font-medium text-foreground">
           {row.original.engagementRate.toFixed(1)}%
         </span>
       </div>
@@ -347,7 +348,7 @@ const columns: ColumnDef<Creator>[] = [
     accessorKey: "creatorPrice",
     header: () => <div className="text-right">Price</div>,
     cell: ({ row }) => (
-      <div className="text-right font-medium text-green-400">
+      <div className="text-right font-medium text-foreground">
         ${formatNumber(row.original.creatorPrice)}
       </div>
     ),
@@ -399,7 +400,7 @@ const columns: ColumnDef<Creator>[] = [
     header: () => <div className="text-right">AI Score</div>,
     cell: ({ row }) => (
       <div className="text-right">
-        <span className={`font-bold ${row.original.aiPerformanceScore >= 90 ? 'text-green-400' : row.original.aiPerformanceScore >= 75 ? 'text-yellow-400' : 'text-red-400'}`}>
+        <span className="font-bold text-foreground">
           {row.original.aiPerformanceScore}
         </span>
       </div>
@@ -497,39 +498,15 @@ export function DataTable({
   )
 
   // Calculate totals for the charts
-  const totalYoutubeViews = React.useMemo(() => 
+  const totalYoutubeViews = React.useMemo(() =>
     data.reduce((sum, creator) => sum + creator.youtubeViews, 0),
     [data]
   )
-  const totalInstagramViews = React.useMemo(() => 
+  const totalInstagramViews = React.useMemo(() =>
     data.reduce((sum, creator) => sum + creator.instagramViews, 0),
     [data]
   )
 
-  // Analytics data for charts
-  const analyticsData = React.useMemo(() => {
-    const youtubeCreators = data.filter(c => c.platform === "youtube")
-    const instagramCreators = data.filter(c => c.platform === "instagram")
-    
-    return {
-      platformData: [
-        { name: "YouTube", views: totalYoutubeViews, creators: youtubeCreators.length },
-        { name: "Instagram", views: totalInstagramViews, creators: instagramCreators.length },
-      ],
-      tierData: [
-        { tier: "Nano", count: data.filter(c => c.tier === "Nano").length },
-        { tier: "Micro", count: data.filter(c => c.tier === "Micro").length },
-        { tier: "Macro", count: data.filter(c => c.tier === "Macro").length },
-        { tier: "Mega", count: data.filter(c => c.tier === "Mega").length },
-      ],
-      monthlyViews: [
-        { month: "Oct", youtube: Math.floor(totalYoutubeViews * 0.6), instagram: Math.floor(totalInstagramViews * 0.5) },
-        { month: "Nov", youtube: Math.floor(totalYoutubeViews * 0.75), instagram: Math.floor(totalInstagramViews * 0.65) },
-        { month: "Dec", youtube: Math.floor(totalYoutubeViews * 0.85), instagram: Math.floor(totalInstagramViews * 0.8) },
-        { month: "Jan", youtube: totalYoutubeViews, instagram: totalInstagramViews },
-      ]
-    }
-  }, [data, totalYoutubeViews, totalInstagramViews])
 
   const table = useReactTable({
     data,
@@ -686,7 +663,7 @@ export function DataTable({
               </SelectContent>
             </Select>
           </div>
-          
+
           <div className="flex items-center gap-2">
             <Label className="text-sm text-muted-foreground hidden sm:inline">Sort by:</Label>
             <Select
@@ -754,9 +731,9 @@ export function DataTable({
                           {header.isPlaceholder
                             ? null
                             : flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )}
+                              header.column.columnDef.header,
+                              header.getContext()
+                            )}
                         </TableHead>
                       )
                     })}
@@ -869,116 +846,16 @@ export function DataTable({
       {/* Analytics Tab */}
       <TabsContent
         value="analytics"
-        className="flex flex-col gap-6 px-4 lg:px-6"
+        className="px-4 lg:px-6"
       >
-        {/* Summary Cards */}
-        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <IconBrandYoutube className="size-4 text-red-500" />
-              YouTube Views
-            </div>
-            <div className="text-2xl font-bold mt-1">{formatNumber(totalYoutubeViews)}</div>
-          </div>
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <IconBrandInstagram className="size-4 text-purple-500" />
-              Instagram Views
-            </div>
-            <div className="text-2xl font-bold mt-1">{formatNumber(totalInstagramViews)}</div>
-          </div>
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              <IconTrendingUp className="size-4 text-green-500" />
-              Total Views
-            </div>
-            <div className="text-2xl font-bold mt-1">{formatNumber(totalYoutubeViews + totalInstagramViews)}</div>
-          </div>
-          <div className="rounded-xl border bg-card p-4">
-            <div className="flex items-center gap-2 text-muted-foreground text-sm">
-              Total Creators
-            </div>
-            <div className="text-2xl font-bold mt-1">{data.length}</div>
-          </div>
-        </div>
-
-        {/* Charts */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Views Over Time Chart */}
-          <div className="rounded-xl border bg-card p-4">
-            <h3 className="font-semibold mb-4">Views Over Time</h3>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <AreaChart data={analyticsData.monthlyViews}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="month" tickLine={false} axisLine={false} />
-                <YAxis 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => formatNumber(value)}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Area
-                  type="monotone"
-                  dataKey="youtube"
-                  stackId="1"
-                  stroke="hsl(0 100% 50%)"
-                  fill="hsl(0 100% 50% / 0.3)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="instagram"
-                  stackId="1"
-                  stroke="hsl(280 100% 70%)"
-                  fill="hsl(280 100% 70% / 0.3)"
-                />
-              </AreaChart>
-            </ChartContainer>
-          </div>
-
-          {/* Platform Distribution Chart */}
-          <div className="rounded-xl border bg-card p-4">
-            <h3 className="font-semibold mb-4">Platform Distribution</h3>
-            <ChartContainer config={chartConfig} className="h-[250px] w-full">
-              <BarChart data={analyticsData.platformData}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                <XAxis dataKey="name" tickLine={false} axisLine={false} />
-                <YAxis 
-                  tickLine={false} 
-                  axisLine={false} 
-                  tickFormatter={(value) => formatNumber(value)}
-                />
-                <ChartTooltip
-                  content={<ChartTooltipContent />}
-                  formatter={(value: number) => formatNumber(value)}
-                />
-                <Bar 
-                  dataKey="views" 
-                  radius={[4, 4, 0, 0]}
-                  fill="hsl(var(--primary))"
-                />
-              </BarChart>
-            </ChartContainer>
-          </div>
-        </div>
-
-        {/* Tier Distribution */}
-        <div className="rounded-xl border bg-card p-4">
-          <h3 className="font-semibold mb-4">Creator Tier Distribution</h3>
-          <div className="grid grid-cols-4 gap-4">
-            {analyticsData.tierData.map((tier) => (
-              <div key={tier.tier} className="text-center">
-                <Badge className={`${tierColors[tier.tier]} px-3 py-1 text-sm mb-2`}>
-                  {tier.tier}
-                </Badge>
-                <div className="text-2xl font-bold">{tier.count}</div>
-                <div className="text-xs text-muted-foreground">creators</div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <Analytics
+          data={data}
+          totalYoutubeViews={totalYoutubeViews}
+          totalInstagramViews={totalInstagramViews}
+          chartConfig={chartConfig}
+          tierColors={tierColors}
+          formatNumber={formatNumber}
+        />
       </TabsContent>
     </Tabs>
   )
